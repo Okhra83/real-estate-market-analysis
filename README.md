@@ -9,7 +9,7 @@
 ## 🛠 Проведена робота
 В ході виконання проекту було реалізовано:
 
-Збір даних: Використано бібліотеку Scikit-Learn для програмного завантаження Ames Housing Dataset безпосередньо в середовищі DataLab.
+Збір даних: Використано бібліотеку Scikit-Learn для програмного завантаження Ames Housing Dataset безпосередньо в середовищі DataLab: 🔗 https://www.datacamp.com/datalab/w/5660a3b9-6444-45cc-920c-ada99f79d31b/edit
 
 Очищення даних (Data Cleaning):
 
