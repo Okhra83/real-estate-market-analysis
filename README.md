@@ -42,6 +42,8 @@
 
 Демо-версія проекту на Streamlit: 🔗 https://real-estate-market-analysis-49dub7safnm3eraopw9zuu.streamlit.app/
 
+![Dashboard Screenshot](newplot.png)
+
 ## 🧪 Викоритсані інструменти
 Мова: Python 3.x
 
