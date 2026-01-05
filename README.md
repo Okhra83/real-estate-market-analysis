@@ -32,7 +32,7 @@
 
 Запустіть сервер Streamlit: streamlit run app.py
 
-🔗 Жива демо-версія проекту: 🔗 https://real-estate-market-analysis-49dub7safnm3eraopw9zuu.streamlit.app/
+Демо-версія проекту на Streamlit: 🔗 https://real-estate-market-analysis-49dub7safnm3eraopw9zuu.streamlit.app/
 
 ## 🧪 Технологічний стек
 Мова: Python 3.x
