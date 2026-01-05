@@ -44,6 +44,8 @@
 
 ![Dashboard Screenshot](newplot.png)
 
+![Dashboard Screenshot](newplot2.png)
+
 ## 🧪 Викоритсані інструменти
 Мова: Python 3.x
 
