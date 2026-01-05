@@ -14,11 +14,11 @@
 
 Відібрано найбільш релевантні ознаки (SalePrice, GrLivArea, Neighborhood, OverallQual, YearBuilt).
 
+![Dashboard Screenshot](newplot3.png)
+
 Видалено пропущені значення та відкориговано типи даних.
 
 Дані збережено у компактний формат CSV для оптимізації швидкості роботи додатка.
-
-![Dashboard Screenshot](newplot3.png)
 
 Розробка дашборду (Present Findings): 
 
