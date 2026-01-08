@@ -69,7 +69,9 @@
 ```text
 real-estate-market-analysis/
 ├── data/
-│   └── cleaned_real-estate-market-analysis.csv  # Очищені та підготовлені дані
-├── app.py                                       # Код додатка Streamlit
-├── requirements.txt                             # Залежності проекту
-└── README.md                                    # Документація проекту
+│   └── cleaned_real-estate-market-analysis.csv   # Очищені та підготовлені дані
+├── notebooks/
+│   └── data_preprocessing.ipynb                  # Jupyter Notebook з процесом очищення даних (DataLab)
+├── app.py                                        # Код додатка Streamlit
+├── requirements.txt                              # Залежності проекту
+└── README.md                                     # Документація проекту
