@@ -14,7 +14,7 @@
 
 Відібрано найбільш релевантні ознаки (SalePrice, GrLivArea, Neighborhood, OverallQual, YearBuilt).
 
-![Dashboard Screenshot](newplot3.png)
+![Dashboard Screenshot](newplot4.png)
 
 Видалено пропущені значення та відкориговано типи даних.
 
