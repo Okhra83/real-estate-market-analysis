@@ -3,75 +3,115 @@ import pandas as pd
 import plotly.express as px
 
 # Налаштування сторінки
-st.set_page_config(page_title="Аналіз нерухомості Ames", layout="wide")
+st.set_page_config(page_title="Real Estate Market Analysis", layout="wide", page_icon="🏠")
 
-st.title("🏠 Аналіз ринку нерухомості (Ames, Iowa)")
-st.markdown("""
-Цей додаток дозволяє аналізувати ціни на будинки залежно від їхньої площі, району та якості побудови.
-""")
+# 1. Словник координат центрів районів міста Ames, Iowa
+neighborhood_coords = {
+    'CollgCr': [42.020, -93.685], 'Veenker': [42.040, -93.650], 'Crawfor': [42.015, -93.645],
+    'NoRidge': [42.050, -93.655], 'Mitchel': [41.990, -93.600], 'Somerst': [42.050, -93.640],
+    'NWAmes': [42.045, -93.635], 'OldTown': [42.030, -93.615], 'BrkSide': [42.032, -93.625],
+    'Sawyer': [42.033, -93.670], 'NridgHt': [42.060, -93.655], 'NAmes': [42.045, -93.620],
+    'SawyerW': [42.035, -93.685], 'IDOTRR': [42.020, -93.622], 'MeadowV': [41.995, -93.610],
+    'Edwards': [42.020, -93.665], 'Timber': [41.995, -93.645], 'Gilbert': [42.060, -93.630],
+    'StoneBr': [42.060, -93.640], 'ClearCr': [42.030, -93.675], 'NPkVill': [42.050, -93.625],
+    'Blmngtn': [42.060, -93.620], 'BrDale': [42.052, -93.620], 'SWISU': [42.020, -93.650],
+    'Blueste': [42.010, -93.650]
+}
 
-# 1. Завантаження даних
+# 2. Завантаження даних
 @st.cache_data
 def load_data():
-    # На GitHub файл завантажений в папці data/
+    # Шлях до твого очищеного файлу
     df = pd.read_csv("data/cleaned_real-estate-market-analysis.csv")
+    
+    # Додаємо координати на основі назви району
+    df['lat'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[0])
+    df['lon'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[1])
     return df
 
-df = load_data()
+try:
+    df = load_data()
 
-# 2. Бічна панель (Sidebar) для фільтрів
-st.sidebar.header("Фільтри")
+    # Заголовок
+    st.title("🏠 Аналіз ринку нерухомості (Ames, Iowa)")
+    st.markdown("Інтерактивний дашборд для дослідження вартості житла.")
 
-# Вибір району
-neighborhoods = st.sidebar.multiselect(
-    "Виберіть район:",
-    options=df["Neighborhood"].unique(),
-    default=df["Neighborhood"].unique()[:5] # за замовчуванням виберемо перші 5
-)
+    # 3. Бічна панель з фільтрами
+    st.sidebar.header("Фільтри пошуку")
+    
+    selected_neighborhoods = st.sidebar.multiselect(
+        "Виберіть райони:",
+        options=sorted(df["Neighborhood"].unique()),
+        default=sorted(df["Neighborhood"].unique())[:5]
+    )
 
-# Вибір діапазону років побудови
-year_range = st.sidebar.slider(
-    "Рік побудови:",
-    int(df["YearBuilt"].min()),
-    int(df["YearBuilt"].max()),
-    (1950, 2010)
-)
+    year_range = st.sidebar.slider(
+        "Рік побудови:",
+        int(df["YearBuilt"].min()),
+        int(df["YearBuilt"].max()),
+        (int(df["YearBuilt"].min()), int(df["YearBuilt"].max()))
+    )
 
-# Фільтрація даних
-filtered_df = df[
-    (df["Neighborhood"].isin(neighborhoods)) & 
-    (df["YearBuilt"].between(year_range[0], year_range[1]))
-]
+    # Фільтрація
+    filtered_df = df[
+        (df["Neighborhood"].isin(selected_neighborhoods)) & 
+        (df["YearBuilt"].between(year_range[0], year_range[1]))
+    ]
 
-# 3. Основні метрики
-col1, col2, col3 = st.columns(3)
-col1.metric("Кількість будинків", len(filtered_df))
-col2.metric("Сер. ціна ($)", f"{filtered_df['SalePrice'].mean():,.0f}")
-col3.metric("Сер. площа (кв.фт)", f"{filtered_df['GrLivArea'].mean():,.0f}")
+    # 4. Основні показники (Метрики)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Кількість об'єктів", len(filtered_df))
+    with col2:
+        st.metric("Сер. ціна", f"${filtered_df['SalePrice'].mean():,.0f}")
+    with col3:
+        st.metric("Сер. площа", f"{filtered_df['GrLivArea'].mean():,.0f} кв.фт")
 
-# 4. Візуалізація
-st.subheader("Зв'язок ціни та площі")
-fig = px.scatter(
-    filtered_df, 
-    x="GrLivArea", 
-    y="SalePrice", 
-    color="OverallQual",
-    hover_name="Neighborhood",
-    labels={"GrLivArea": "Площа (кв. фути)", "SalePrice": "Ціна ($)", "OverallQual": "Якість"},
-    template="plotly_white"
-)
-st.plotly_chart(fig, use_container_width=True)
+    # 5. ГЕОГРАФІЧНА ТЕПЛОВА КАРТА
+    st.subheader("📍 Теплова карта цін за районами")
+    
+    # Агрегуємо дані для карти
+    map_data = filtered_df.groupby('Neighborhood').agg({
+        'SalePrice': 'mean',
+        'lat': 'first',
+        'lon': 'first'
+    }).reset_index()
 
-st.subheader("Розподіл цін за районами")
-fig_box = px.box(
-    filtered_df, 
-    x="Neighborhood", 
-    y="SalePrice", 
-    color="Neighborhood",
-    title="Розкид цін у вибраних районах"
-)
-st.plotly_chart(fig_box, use_container_width=True)
+    fig_map = px.density_mapbox(
+        map_data, 
+        lat='lat', 
+        lon='lon', 
+        z='SalePrice', 
+        radius=40,
+        center=dict(lat=42.034, lon=-93.642), 
+        zoom=11,
+        mapbox_style="carto-positron",
+        title="Географічний розподіл вартості",
+        labels={'SalePrice': 'Середня ціна ($)'},
+        height=500
+    )
+    st.plotly_chart(fig_map, use_container_width=True)
 
-# 5. Перегляд сирих даних
-if st.checkbox("Показати таблицю даних"):
-    st.write(filtered_df)
+    # 6. Аналіз залежностей
+    st.subheader("📊 Зв'язок ціни, площі та якості")
+    
+    fig_scatter = px.scatter(
+        filtered_df, 
+        x="GrLivArea", 
+        y="SalePrice", 
+        color="OverallQual",
+        size="SalePrice",
+        hover_name="Neighborhood",
+        labels={"GrLivArea": "Площа (кв. фути)", "SalePrice": "Ціна ($)", "OverallQual": "Якість побудови"},
+        template="plotly_white",
+        color_continuous_scale=px.colors.sequential.Viridis
+    )
+    st.plotly_chart(fig_scatter, use_container_width=True)
+
+    # 7. Таблиця даних
+    if st.checkbox("Показати детальні дані"):
+        st.dataframe(filtered_df)
+
+except Exception as e:
+    st.error(f"Помилка при завантаженні: {e}")
+    st.info("Перевірте, чи файл 'data/cleaned_real-estate-market-analysis.csv' існує у вашому репозиторії.")
