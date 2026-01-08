@@ -57,15 +57,18 @@
 ![Dashboard Screenshot](newplot3.png)
 
 ## 🧪 Викоритсані інструменти
-Мова: Python 3.x
-
-Аналіз: Pandas, Scikit-learn
-
-Візуалізація: Plotly Express
-
-Деплой: Streamlit Cloud
+* **Python 3.9+**
+* **Streamlit:** Створення веб-інтерфейсу.
+* **Pandas & NumPy:** Обробка та очищення даних.
+* **Plotly:** Створення інтерактивних графіків та карт.
+* **Scikit-Learn:** Модель машинного навчання (Linear Regression).
+* **Statsmodels:** Розрахунок ліній тренду.
 
 ## 📂 Структура проекту
+* `app.py` — головний файл додатку Streamlit.
+* `notebooks/` — Jupyter Notebook з процесом очищення даних (DataLab).
+* `data/` — очищений набір даних у форматі CSV.
+* `requirements.txt` — список необхідних бібліотек.
 ```text
 real-estate-market-analysis/
 ├── data/
