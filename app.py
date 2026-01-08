@@ -7,7 +7,10 @@ import numpy as np
 # Налаштування сторінки
 st.set_page_config(page_title="Real Estate Analysis & Prediction", layout="wide", page_icon="🏠")
 
-# 1. Словник координат центрів районів міста Ames
+# Константа для конвертації: 1 кв. фут = 0.092903 кв. метра
+SQFT_TO_SQM = 0.092903
+
+# 1. Словник координат центрів районів міста Ames, Iowa
 neighborhood_coords = {
     'CollgCr': [42.020, -93.685], 'Veenker': [42.040, -93.650], 'Crawfor': [42.015, -93.645],
     'NoRidge': [42.050, -93.655], 'Mitchel': [41.990, -93.600], 'Somerst': [42.050, -93.640],
@@ -20,17 +23,24 @@ neighborhood_coords = {
     'Blueste': [42.010, -93.650]
 }
 
+# 2. Завантаження та підготовка даних
 @st.cache_data
 def load_data():
     df = pd.read_csv("data/cleaned_real-estate-market-analysis.csv")
+    
+    # Додаємо координати
     df['lat'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[0])
     df['lon'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[1])
+    
+    # Створюємо колонку в квадратних метрах
+    df['Area_sqm'] = df['GrLivArea'] * SQFT_TO_SQM
     return df
 
 try:
     df = load_data()
 
     st.title("🏠 Real Estate Market Analysis & Prediction")
+    st.markdown("---")
 
     # --- БІЧНА ПАНЕЛЬ (Фільтри + ML) ---
     st.sidebar.header("🔍 Фільтри даних")
@@ -50,7 +60,7 @@ try:
         (int(df["YearBuilt"].min()), int(df["YearBuilt"].max()))
     )
 
-    # Фільтрація основного датасету
+    # Фільтрація
     filtered_df = df[
         (df["Neighborhood"].isin(selected_neighborhoods)) & 
         (df["YearBuilt"].between(year_range[0], year_range[1]))
@@ -58,26 +68,31 @@ try:
 
     st.sidebar.markdown("---")
     st.sidebar.header("🔮 Прогноз вартості")
-    input_area = st.sidebar.number_input("Площа вашого будинку (кв.фт):", min_value=500, max_value=5000, value=1500)
+    
+    # Введення в метрах
+    input_area_sqm = st.sidebar.number_input("Площа будинку (м²):", min_value=30, max_value=500, value=120)
     input_qual = st.sidebar.slider("Якість обробки (1-10):", 1, 10, 5)
 
-    # Модель ML (навчається на повному датасеті для точності)
+    # Конвертація назад у фути для моделі
+    input_area_sqft = input_area_sqm / SQFT_TO_SQM
+
+    # Навчання моделі
     X = df[['GrLivArea', 'OverallQual']]
     y = df['SalePrice']
     model = LinearRegression().fit(X, y)
-    prediction = model.predict([[input_area, input_qual]])[0]
+    prediction = model.predict([[input_area_sqft, input_qual]])[0]
 
     st.sidebar.success(f"Орієнтовна вартість: ${prediction:,.0f}")
 
-    # --- ОСНОВНА ЧАСТИНА (Метрики та Графіки) ---
+    # --- ОСНОВНА ЧАСТИНА ---
     
     # Метрики
     col1, col2, col3 = st.columns(3)
     col1.metric("Об'єктів знайдено", len(filtered_df))
-    col2.metric("Сер. ціна у вибірці", f"${filtered_df['SalePrice'].mean():,.0f}")
-    col3.metric("Ваш прогноз", f"${prediction:,.0f}")
+    col2.metric("Сер. ціна", f"${filtered_df['SalePrice'].mean():,.0f}")
+    col3.metric("Сер. площа (м²)", f"{filtered_df['Area_sqm'].mean():,.1f} м²")
 
-    # Карта (використовує filtered_df)
+    # 1. Карта
     st.subheader("📍 Теплова карта цін за районами")
     map_data = filtered_df.groupby('Neighborhood').agg({
         'SalePrice': 'mean', 'lat': 'first', 'lon': 'first'
@@ -86,20 +101,26 @@ try:
     fig_map = px.density_mapbox(
         map_data, lat='lat', lon='lon', z='SalePrice', radius=30,
         center=dict(lat=42.034, lon=-93.642), zoom=11,
-        mapbox_style="carto-positron", height=400
+        mapbox_style="carto-positron", height=400,
+        labels={'SalePrice': 'Ціна ($)'}
     )
     st.plotly_chart(fig_map, use_container_width=True)
 
-    # Box Plot (використовує filtered_df)
+    # 2. Box Plot
     st.subheader("📦 Розкид цін у вибраних районах")
-    fig_box = px.box(filtered_df, x="Neighborhood", y="SalePrice", color="Neighborhood")
+    fig_box = px.box(
+        filtered_df, x="Neighborhood", y="SalePrice", color="Neighborhood",
+        labels={'SalePrice': 'Ціна ($)', 'Neighborhood': 'Район'}
+    )
     st.plotly_chart(fig_box, use_container_width=True)
 
-    # Scatter Plot (використовує filtered_df)
-    st.subheader("📊 Залежність: Площа vs Ціна")
+    # 3. Scatter Plot (в метрах)
+    st.subheader("📊 Залежність: Площа (м²) vs Ціна")
     fig_scatter = px.scatter(
-        filtered_df, x="GrLivArea", y="SalePrice", color="OverallQual", 
-        hover_name="Neighborhood", trendline="ols"
+        filtered_df, x="Area_sqm", y="SalePrice", color="OverallQual", 
+        hover_name="Neighborhood", trendline="ols",
+        labels={"Area_sqm": "Площа (кв. м)", "SalePrice": "Ціна ($)", "OverallQual": "Якість"},
+        template="plotly_white"
     )
     st.plotly_chart(fig_scatter, use_container_width=True)
 
