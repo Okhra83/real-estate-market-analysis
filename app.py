@@ -21,10 +21,7 @@ neighborhood_coords = {
 # 2. Завантаження даних
 @st.cache_data
 def load_data():
-    # Шлях до твого очищеного файлу
     df = pd.read_csv("data/cleaned_real-estate-market-analysis.csv")
-    
-    # Додаємо координати на основі назви району
     df['lat'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[0])
     df['lon'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[1])
     return df
@@ -32,13 +29,10 @@ def load_data():
 try:
     df = load_data()
 
-    # Заголовок
     st.title("🏠 Аналіз ринку нерухомості (Ames, Iowa)")
-    st.markdown("Інтерактивний дашборд для дослідження вартості житла.")
 
-    # 3. Бічна панель з фільтрами
+    # 3. Бічна панель
     st.sidebar.header("Фільтри пошуку")
-    
     selected_neighborhoods = st.sidebar.multiselect(
         "Виберіть райони:",
         options=sorted(df["Neighborhood"].unique()),
@@ -52,66 +46,53 @@ try:
         (int(df["YearBuilt"].min()), int(df["YearBuilt"].max()))
     )
 
-    # Фільтрація
     filtered_df = df[
         (df["Neighborhood"].isin(selected_neighborhoods)) & 
         (df["YearBuilt"].between(year_range[0], year_range[1]))
     ]
 
-    # 4. Основні показники (Метрики)
+    # 4. Метрики
     col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Кількість об'єктів", len(filtered_df))
-    with col2:
-        st.metric("Сер. ціна", f"${filtered_df['SalePrice'].mean():,.0f}")
-    with col3:
-        st.metric("Сер. площа", f"{filtered_df['GrLivArea'].mean():,.0f} кв.фт")
+    col1.metric("Кількість об'єктів", len(filtered_df))
+    col2.metric("Сер. ціна", f"${filtered_df['SalePrice'].mean():,.0f}")
+    col3.metric("Сер. площа", f"{filtered_df['GrLivArea'].mean():,.0f} кв.фт")
 
-    # 5. ГЕОГРАФІЧНА ТЕПЛОВА КАРТА
+    # 5. ГЕОГРАФІЧНА КАРТА
     st.subheader("📍 Теплова карта цін за районами")
-    
-    # Агрегуємо дані для карти
     map_data = filtered_df.groupby('Neighborhood').agg({
-        'SalePrice': 'mean',
-        'lat': 'first',
-        'lon': 'first'
+        'SalePrice': 'mean', 'lat': 'first', 'lon': 'first'
     }).reset_index()
 
     fig_map = px.density_mapbox(
-        map_data, 
-        lat='lat', 
-        lon='lon', 
-        z='SalePrice', 
-        radius=40,
-        center=dict(lat=42.034, lon=-93.642), 
-        zoom=11,
-        mapbox_style="carto-positron",
-        title="Географічний розподіл вартості",
-        labels={'SalePrice': 'Середня ціна ($)'},
-        height=500
+        map_data, lat='lat', lon='lon', z='SalePrice', radius=40,
+        center=dict(lat=42.034, lon=-93.642), zoom=11,
+        mapbox_style="carto-positron", height=450
     )
     st.plotly_chart(fig_map, use_container_width=True)
 
-    # 6. Аналіз залежностей
-    st.subheader("📊 Зв'язок ціни, площі та якості")
-    
-    fig_scatter = px.scatter(
+    # 6. ВІЗУАЛІЗАЦІЯ РОЗКИДУ ЦІН (Box Plot)
+    st.subheader("📦 Розкид цін у вибраних районах")
+    fig_box = px.box(
         filtered_df, 
-        x="GrLivArea", 
+        x="Neighborhood", 
         y="SalePrice", 
-        color="OverallQual",
-        size="SalePrice",
-        hover_name="Neighborhood",
-        labels={"GrLivArea": "Площа (кв. фути)", "SalePrice": "Ціна ($)", "OverallQual": "Якість побудови"},
-        template="plotly_white",
-        color_continuous_scale=px.colors.sequential.Viridis
+        color="Neighborhood",
+        points="all", # показує окремі будинки точками поверх боксів
+        title="Розподіл вартості за локаціями",
+        labels={'SalePrice': 'Ціна ($)', 'Neighborhood': 'Район'}
+    )
+    st.plotly_chart(fig_box, use_container_width=True)
+    
+    
+
+    # 7. Зв'язок ціни та площі
+    st.subheader("📊 Зв'язок ціни, площі та якості")
+    fig_scatter = px.scatter(
+        filtered_df, x="GrLivArea", y="SalePrice", color="OverallQual",
+        hover_name="Neighborhood", template="plotly_white",
+        labels={"GrLivArea": "Площа", "SalePrice": "Ціна"}
     )
     st.plotly_chart(fig_scatter, use_container_width=True)
 
-    # 7. Таблиця даних
-    if st.checkbox("Показати детальні дані"):
-        st.dataframe(filtered_df)
-
 except Exception as e:
-    st.error(f"Помилка при завантаженні: {e}")
-    st.info("Перевірте, чи файл 'data/cleaned_real-estate-market-analysis.csv' існує у вашому репозиторії.")
+    st.error(f"Помилка: {e}")
