@@ -7,7 +7,7 @@ import numpy as np
 # Налаштування сторінки
 st.set_page_config(page_title="Real Estate Analysis & Prediction", layout="wide", page_icon="🏠")
 
-# 1. Координати районів
+# 1. Словник координат центрів районів міста Ames
 neighborhood_coords = {
     'CollgCr': [42.020, -93.685], 'Veenker': [42.040, -93.650], 'Crawfor': [42.015, -93.645],
     'NoRidge': [42.050, -93.655], 'Mitchel': [41.990, -93.600], 'Somerst': [42.050, -93.640],
@@ -27,45 +27,81 @@ def load_data():
     df['lon'] = df['Neighborhood'].map(lambda x: neighborhood_coords.get(x, [42.034, -93.642])[1])
     return df
 
-df = load_data()
+try:
+    df = load_data()
 
-st.title("🏠 Real Estate Market Analysis & Prediction")
+    st.title("🏠 Real Estate Market Analysis & Prediction")
 
-# --- СИСТЕМА ПЕРЕДБАЧЕННЯ ЦІНИ (ML) ---
-st.sidebar.markdown("---")
-st.sidebar.header("🔮 Прогноз вартості")
-input_area = st.sidebar.number_input("Площа будинку (кв.фт):", min_value=500, max_value=5000, value=1500)
-input_qual = st.sidebar.slider("Якість обробки (1-10):", 1, 10, 5)
+    # --- БІЧНА ПАНЕЛЬ (Фільтри + ML) ---
+    st.sidebar.header("🔍 Фільтри даних")
+    
+    # Вибір районів
+    selected_neighborhoods = st.sidebar.multiselect(
+        "Виберіть райони:",
+        options=sorted(df["Neighborhood"].unique()),
+        default=sorted(df["Neighborhood"].unique())[:5]
+    )
 
-# Проста модель лінійної регресії
-X = df[['GrLivArea', 'OverallQual']]
-y = df['SalePrice']
-model = LinearRegression().fit(X, y)
+    # Вибір року побудови
+    year_range = st.sidebar.slider(
+        "Рік побудови:",
+        int(df["YearBuilt"].min()),
+        int(df["YearBuilt"].max()),
+        (int(df["YearBuilt"].min()), int(df["YearBuilt"].max()))
+    )
 
-# Розрахунок прогнозу
-prediction = model.predict([[input_area, input_qual]])[0]
+    # Фільтрація основного датасету
+    filtered_df = df[
+        (df["Neighborhood"].isin(selected_neighborhoods)) & 
+        (df["YearBuilt"].between(year_range[0], year_range[1]))
+    ]
 
-st.sidebar.success(f"Орієнтовна вартість: ${prediction:,.0f}")
-st.sidebar.info("Прогноз базується на лінійній регресії по всьому місту.")
+    st.sidebar.markdown("---")
+    st.sidebar.header("🔮 Прогноз вартості")
+    input_area = st.sidebar.number_input("Площа вашого будинку (кв.фт):", min_value=500, max_value=5000, value=1500)
+    input_qual = st.sidebar.slider("Якість обробки (1-10):", 1, 10, 5)
 
-# --- ВІЗУАЛІЗАЦІЯ
-col1, col2, col3 = st.columns(3)
-col1.metric("Об'єктів в базі", len(df))
-col2.metric("Сер. ціна", f"${df['SalePrice'].mean():,.0f}")
-col3.metric("Ваш запит", f"${prediction:,.0f}")
+    # Модель ML (навчається на повному датасеті для точності)
+    X = df[['GrLivArea', 'OverallQual']]
+    y = df['SalePrice']
+    model = LinearRegression().fit(X, y)
+    prediction = model.predict([[input_area, input_qual]])[0]
 
-st.subheader("📍 Географічна теплова карта")
-fig_map = px.density_mapbox(
-    df, lat='lat', lon='lon', z='SalePrice', radius=30,
-    center=dict(lat=42.034, lon=-93.642), zoom=11,
-    mapbox_style="carto-positron", height=400
-)
-st.plotly_chart(fig_map, use_container_width=True)
+    st.sidebar.success(f"Орієнтовна вартість: ${prediction:,.0f}")
 
-st.subheader("📦 Розкид цін за районами")
-fig_box = px.box(df, x="Neighborhood", y="SalePrice", color="Neighborhood")
-st.plotly_chart(fig_box, use_container_width=True)
+    # --- ОСНОВНА ЧАСТИНА (Метрики та Графіки) ---
+    
+    # Метрики
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Об'єктів знайдено", len(filtered_df))
+    col2.metric("Сер. ціна у вибірці", f"${filtered_df['SalePrice'].mean():,.0f}")
+    col3.metric("Ваш прогноз", f"${prediction:,.0f}")
 
-st.subheader("📊 Залежність: Площа vs Ціна")
-fig_scatter = px.scatter(df, x="GrLivArea", y="SalePrice", color="OverallQual", trendline="ols")
-st.plotly_chart(fig_scatter, use_container_width=True)
+    # Карта (використовує filtered_df)
+    st.subheader("📍 Теплова карта цін за районами")
+    map_data = filtered_df.groupby('Neighborhood').agg({
+        'SalePrice': 'mean', 'lat': 'first', 'lon': 'first'
+    }).reset_index()
+
+    fig_map = px.density_mapbox(
+        map_data, lat='lat', lon='lon', z='SalePrice', radius=30,
+        center=dict(lat=42.034, lon=-93.642), zoom=11,
+        mapbox_style="carto-positron", height=400
+    )
+    st.plotly_chart(fig_map, use_container_width=True)
+
+    # Box Plot (використовує filtered_df)
+    st.subheader("📦 Розкид цін у вибраних районах")
+    fig_box = px.box(filtered_df, x="Neighborhood", y="SalePrice", color="Neighborhood")
+    st.plotly_chart(fig_box, use_container_width=True)
+
+    # Scatter Plot (використовує filtered_df)
+    st.subheader("📊 Залежність: Площа vs Ціна")
+    fig_scatter = px.scatter(
+        filtered_df, x="GrLivArea", y="SalePrice", color="OverallQual", 
+        hover_name="Neighborhood", trendline="ols"
+    )
+    st.plotly_chart(fig_scatter, use_container_width=True)
+
+except Exception as e:
+    st.error(f"Виникла помилка: {e}")
