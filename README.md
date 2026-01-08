@@ -82,7 +82,7 @@ $$Price = (w_1 \cdot Area) + (w_2 \cdot Quality) + b$$
 * `data/` — очищений набір даних у форматі CSV.
 * `requirements.txt` — список необхідних бібліотек.
 ```text
-real-estate-market-analysis/
+real-estate-market-analysis/                      # Репозиторій проекту
 ├── data/
 │   └── cleaned_real-estate-market-analysis.csv   # Очищені та підготовлені дані
 ├── notebooks/
