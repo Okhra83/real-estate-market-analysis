@@ -52,6 +52,12 @@ $$Price = (w_1 \cdot Area) + (w_2 \cdot Quality) + b$$
 - **Статистичний аналіз:** Порівняння розподілу цін (Box Plots) та виявлення залежностей (Scatter Plots).
 - **ML Прогноз:** Моментальне оцінювання вартості будинку на основі його площі та якості обробки.
 
+![Dashboard Screenshot](newplot.png)
+
+![Dashboard Screenshot](newplot2.png)
+
+![Dashboard Screenshot](newplot3.png)
+
 Запуск локально:
 
 Клонуйте репозиторій: git clone https://github.com/Okhra83/real-estate-market-analysis.git
@@ -70,12 +76,6 @@ $$Price = (w_1 \cdot Area) + (w_2 \cdot Quality) + b$$
   <img src=qr.png width="200" alt="QR Code">
   <p><i>Відскануйте, щоб відкрити додаток</i></p>
 </div>
-
-![Dashboard Screenshot](newplot.png)
-
-![Dashboard Screenshot](newplot2.png)
-
-![Dashboard Screenshot](newplot3.png)
 
 ## 🧪 Викоритсані інструменти
 * **Python 3.9+**
@@ -99,3 +99,13 @@ real-estate-market-analysis/                      # Репозиторій пр�
 ├── app.py                                        # Код додатка Streamlit
 ├── requirements.txt                              # Залежності проекту
 └── README.md                                     # Документація проекту
+```
+
+---
+## 👨‍💻 Автор
+
+**Kostiantyn Okhrimchuk** *Data Science Student*
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/kostiantyn-okhrimchuk-3842a3384/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Okhra83)
+[![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:konstantin.okhrimchuk@gmail.com)
