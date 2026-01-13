@@ -64,9 +64,12 @@ $$Price = (w_1 \cdot Area) + (w_2 \cdot Quality) + b$$
 
 Демо-версія проекту на Streamlit: 🔗 https://real-estate-market-analysis-49dub7safnm3eraopw9zuu.streamlit.app/
 
-Або скануйте:
+Або:
 
-![Dashboard Screenshot](qr.png)
+<div align="center">
+  <img src=qr.png width="200" alt="QR Code">
+  <p><i>Відскануйте, щоб відкрити додаток</i></p>
+</div>
 
 ![Dashboard Screenshot](newplot.png)
 
