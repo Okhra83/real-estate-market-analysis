@@ -8,13 +8,17 @@
 
 Збір даних (Collect Data):
 
+Дані для цього проекту були отримані з репозиторію **OpenML**
+
 Назва датасету: House Prices (Ames, Iowa)
 
 Платформа: OpenML.org
 
 ID датасету: 42165 (або назва house_prices)
 
-Використано бібліотеку Scikit-Learn для програмного завантаження Ames Housing Dataset безпосередньо в середовищі DataLab: 🔗 https://www.datacamp.com/datalab/w/5660a3b9-6444-45cc-920c-ada99f79d31b/edit
+Опис датасету: Набір даних включає 79 ознак, що описують майже кожен аспект житлових будинків в Еймсі, Айова
+
+Використано бібліотеку `scikit-learn` для програмного завантаження Ames Housing Dataset безпосередньо в середовищі DataLab: 🔗 https://www.datacamp.com/datalab/w/5660a3b9-6444-45cc-920c-ada99f79d31b/edit
 
 Очищення даних (Clean Data):
 
