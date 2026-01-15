@@ -22,7 +22,7 @@ ID датасету: 42165 (або назва house_prices)
 
 Очищення даних (Clean Data):
 
-Відібрано найбільш релевантні ознаки (SalePrice, GrLivArea, Neighborhood, OverallQual, YearBuilt).
+Відібрано 5 найбільш релевантних ознак: (SalePrice (Вартість), GrLivArea (Площа), Neighborhood (Район забудови), OverallQual (Якість оздоблення), YearBuilt (Рік будівництва)).
 
 ![Dashboard Screenshot](newplot4.png)
 
