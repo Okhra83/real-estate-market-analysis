@@ -114,27 +114,15 @@ try:
     )
     st.plotly_chart(fig_box, use_container_width=True)
 
-    # 3. Scatter Plot (в метрах)
-st.subheader("📊 Залежність: Площа (м²) vs Ціна")
-fig_scatter = px.scatter(
-    filtered_df, x="Area_sqm", y="SalePrice", color="OverallQual", 
-    hover_name="Neighborhood", trendline="ols",
-    labels={"Area_sqm": "Площа (кв. м)", "SalePrice": "Ціна ($)", "OverallQual": "Якість"},
-    template="plotly_white",
-    color_continuous_scale="Viridis" # Додаємо чітку кольорову шкалу
-)
-st.plotly_chart(fig_scatter, use_container_width=True)
-
-# Додаємо пояснення шкали прямо під графіком
-st.info("""
-**💡 Як читати цей графік:**
-* **Точки та лінія:** Кожна точка — це будинок. Пунктирна лінія — це математичний прогноз ціни (лінійна регресія).
-* **Колір (Якість обробки):**
-    * 🟣 **1–3**: Низька якість (потребує ремонту).
-    * 🟢 **4–6**: Середній рівень (типовий стан).
-    * 🟡 **7–10**: Висока та елітна якість (сучасний/преміум ремонт).
-* **Висновок:** Чим вище точка знаходиться над лінією, тим більше на її ціну вплинула висока якість оздоблення.
-""")
+     # 3. Scatter Plot (в метрах)
+    st.subheader("📊 Залежність: Площа (м²) vs Ціна")
+    fig_scatter = px.scatter(
+        filtered_df, x="Area_sqm", y="SalePrice", color="OverallQual", 
+        hover_name="Neighborhood", trendline="ols",
+        labels={"Area_sqm": "Площа (кв. м)", "SalePrice": "Ціна ($)", "OverallQual": "Якість"},
+        template="plotly_white"
+    )
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
 except Exception as e:
     st.error(f"Виникла помилка: {e}")
